@@ -1,0 +1,15 @@
+Ini, TOML
+[Unit]
+Description=Spectrum DDS Persistent Hardware Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/spectrum
+ExecStart=/usr/bin/python3 /opt/spectrum/spectrum_daemon.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

@@ -49,7 +49,7 @@ class SpectrumDaemon:
         self.card.set_i(spcm.SPC_DDS_CORES_ON_CH2, spcm.SPCM_DDS_CORE48)
         self.card.start(spcm.M2CMD_CARD_ENABLETRIGGER)
         self.dds.trg_src(spcm.SPCM_DDS_TRG_SRC_CARD)
-        self.dds[0].amp(0.2)
+        self.dds[0].amp(0.0)
         self.dds[0].freq(80e6)
         self.dds[47].freq(0)
         self.dds[47].phase(90)
