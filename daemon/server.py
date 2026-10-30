@@ -108,13 +108,37 @@ class SpectrumDaemon:
                 sleep(0.01)
             return {"status": "OK", "msg": f"Amplitude {amp_oscillator} frequency set to {freq_oscillator} Hz"}
 
-        elif cmd_type == 'run_sequence_amplificatoin':
-            core = payload.get('core', 0)
-            phase_deg = payload.get('phase')
-            reg_offset = spcm.SPC_DDS_CORE0_PHASE + (core * 0x10)
-            self.card.set_param(reg_offset, phase_deg)
-            self.card.set_param(spcm.SPC_DDS_CMD, spcm.SPCM_DDS_CMD_EXEC_NOW)
-            return {"status": "OK", "msg": f"Core {core} phase set to {phase_deg} deg"}
+        elif cmd_type == 'run_sequence_amplification':
+            freq_default = payload.get('freq_default')
+            freq_heating = payload.get('freq_heating')
+            freq_amplification = payload.get('freq_amplification')
+            duration_amplification = payload.get('duration_amplification')
+            duration_heating = payload.get('duration_heating')
+            assert self.card and not (self.card.status() & spcm.M2STAT_CARD_READY)
+            target = self.dds.trg_count() + 2
+            self.dds[0].freq(float(freq_heating))
+            self.dds[47].amp(1)                      # ch1 DC on: 0.2 × 1000 mV = 200 mV
+            self.dds.trg_timer(float(duration_heating))     
+            self.dds.trg_src(spcm.SPCM_DDS_TRG_SRC_TIMER)
+            self.dds.exec_at_trg()
+            self.dds[0].freq(float(freq_amplification))
+            self.dds[47].amp(1.0)
+            self.dds.trg_timer(float(duration_amplification))
+            self.dds.trg_src(spcm.SPCM_DDS_TRG_SRC_TIMER)
+            self.dds.exec_at_trg()
+            self.dds[0].freq(float(freq_default))
+            self.dds[47].amp(0.0)                  
+            self.dds.trg_src(spcm.SPCM_DDS_TRG_SRC_CARD)
+            self.dds.exec_at_trg()
+            self.dds.write_to_card()
+            self.card.cmd(spcm.M2CMD_CARD_FORCETRIGGER)
+            deadline = monotonic() + 5
+            while self.dds.trg_count() < target:
+                if monotonic() > deadline:
+                    return {"status": "ERROR", "msg": "Timeout waiting for trigger count."}
+                sleep(0.01)
+            return {"status": "OK", "msg": f"Amplitude {amp_oscillator} frequency set to {freq_oscillator} Hz"}
+
 
         elif cmd_type == 'ping':
             return {"status": "OK", "msg": "Spectrum Card Daemon active"}
@@ -154,7 +178,6 @@ class SpectrumDaemon:
 
         # Clean shutdown only when explicit stop command or signal is received
         logging.info("Shutting down daemon and releasing Spectrum handle...")
-        self.card.close()
         server_socket.close()
 
 if __name__ == '__main__':
