@@ -40,9 +40,9 @@ if __name__ == "__main__":
     # 1. Test Connection
     res_oscillator = client.set_oscillator(amplitude=0.3, freq_hz=80_000_000)
     # 2. Modify Core 0 Frequency to 125 MHz
-    for i in range(10):
-        res_freq = client.set_hr(freq_default=80_000_000, freq_heating=70_000_000, duration=0.1)
-        time.sleep(1)
+#    for i in range(10):
+#        res_freq = client.set_hr(freq_default=80_000_000, freq_heating=70_000_000, duration=0.1)
+#        time.sleep(1)
     #print("Frequency Update:", res_freq)
 
 

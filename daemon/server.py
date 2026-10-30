@@ -127,7 +127,7 @@ class SpectrumDaemon:
             self.dds.trg_src(spcm.SPCM_DDS_TRG_SRC_TIMER)
             self.dds.exec_at_trg()
             self.dds[0].freq(float(freq_default))
-            self.dds[47].amp(0.0)                  
+            self.dds[47].amp(0.0)                      
             self.dds.trg_src(spcm.SPCM_DDS_TRG_SRC_CARD)
             self.dds.exec_at_trg()
             self.dds.write_to_card()
@@ -179,6 +179,7 @@ class SpectrumDaemon:
         # Clean shutdown only when explicit stop command or signal is received
         logging.info("Shutting down daemon and releasing Spectrum handle...")
         server_socket.close()
+        self.card.close_handle()
 
 if __name__ == '__main__':
     daemon = SpectrumDaemon(ADDRESS)
